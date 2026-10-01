@@ -9,6 +9,7 @@ pub struct SDL_FRect {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[allow(non_camel_case_types)]
 pub enum SDL_EventType {
     SDL_EVENT_FIRST = 0,
     SDL_EVENT_QUIT = 0x100,
@@ -24,9 +25,27 @@ pub struct SDL_QuitEvent {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[allow(non_snake_case)]
+pub struct SDL_KeyboardEvent {
+    pub r#type: SDL_EventType,
+    pub reserved: u32,
+    pub timestamp: u64,
+    pub windowID: u32,
+    pub which: u32,
+    pub scancode: u32,
+    pub key: u32,
+    pub r#mod: u16,
+    pub raw: u16,
+    pub down: bool,
+    pub repeat: bool,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub union SDL_Event {
     pub r#type: u32,
     pub quit: SDL_QuitEvent,
+    pub key: SDL_KeyboardEvent,
     pub padding: [u8; 128],
 }
 
@@ -63,8 +82,14 @@ unsafe extern "C" {
     pub fn SDL_RenderPresent(renderer: *mut SDL_Renderer) -> bool;
 
     pub fn SDL_RenderRect(renderer: *mut SDL_Renderer, rect: *const SDL_FRect) -> bool;
+    pub fn SDL_RenderFillRect(renderer: *mut SDL_Renderer, rect: *const SDL_FRect) -> bool;
 
     pub fn SDL_PollEvent(event: *mut SDL_Event) -> bool;
 
     pub fn SDL_GetTicks() -> u64;
+
+    pub fn SDL_GetError() -> *const std::ffi::c_char;
+
+    pub fn SDL_Quit();
+
 }

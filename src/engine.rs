@@ -1,102 +1,105 @@
-use std::ffi::CString;
-
+use crate::component::Component;
+use crate::enums::Keys;
 use crate::sdl::{
-    SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyRenderer, SDL_DestroyWindow, SDL_Event,
-    SDL_FRect, SDL_GetTicks, SDL_Init, SDL_PollEvent, SDL_RenderClear, SDL_RenderPresent,
-    SDL_RenderRect, SDL_SetRenderDrawColor,
+    SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyWindow, SDL_Event, SDL_GetError, SDL_GetTicks,
+    SDL_Init, SDL_PollEvent, SDL_Quit, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor,
 };
 
-#[derive(Debug, Clone)]
-pub struct Ctx {
-    pub renderer: Option<Renderer>,
-    pub window: Option<Window>,
-}
+use crate::{enums::WindowFlags, renderer::Renderer, window::Window};
+use std::ffi::CString;
 
-pub struct Engine {
+pub type Sdl3Result = Result<(), String>;
+
+pub struct Engine<T> {
     running: bool,
-    _on_draws: Vec<fn(&mut Ctx) -> ()>,
-    _on_updates: Vec<fn(&mut Ctx, f32) -> ()>,
-    pub ctx: Ctx,
+    window: Option<Window>,
+    renderer: Option<Renderer>,
+    components: Vec<Box<dyn Component<T>>>,
+    pub state: T,
 }
 
-impl Engine {
-    pub fn new() -> Engine {
+impl<T> Engine<T> {
+    pub fn add(&mut self, component: impl Component<T> + 'static) {
+        self.components.push(Box::new(component));
+    }
+}
+
+impl<T> Drop for Engine<T> {
+    fn drop(&mut self) {
+        unsafe {
+            SDL_Quit();
+        }
+    }
+}
+
+impl<T> Engine<T> {
+    pub fn new(state: T) -> Engine<T> {
         unsafe {
             SDL_Init(0x20);
         };
 
         Engine {
             running: false,
-            _on_draws: Vec::new(),
-            _on_updates: Vec::new(),
-            ctx: Ctx {
-                window: None,
-                renderer: None,
-            },
+            components: Vec::new(),
+            state: state,
+            window: None,
+            renderer: None,
         }
     }
 
     pub fn create_window(
         &mut self,
         title: &'static str,
-        width: i32,
-        height: i32,
-    ) -> Result<(), ()> {
+        width: u32,
+        height: u32,
+        flags: WindowFlags,
+    ) -> Sdl3Result {
         let title_c = CString::new(title).unwrap();
 
         unsafe {
-            let sdl_window = SDL_CreateWindow(title_c.as_ptr(), width, height, 0);
+            let sdl_window =
+                SDL_CreateWindow(title_c.as_ptr(), width as i32, height as i32, flags as u64);
             if sdl_window.is_null() {
-                eprintln!("couldnt create window");
-                return Err(());
+                return Err(SDL_GetError().cast::<String>().read());
             }
 
             let sdl_renderer = SDL_CreateRenderer(sdl_window, std::ptr::null());
             if sdl_renderer.is_null() {
-                eprintln!("couldnt create renderer");
                 SDL_DestroyWindow(sdl_window);
-                return Err(());
+                return Err(SDL_GetError().cast::<String>().read());
             }
 
-            self.ctx.window = Some(Window {
+            self.window = Some(Window {
                 sdl_window,
                 title,
-                width,
-                height,
+                width: width as i32,
+                height: height as i32,
             });
-            self.ctx.renderer = Some(Renderer { sdl_renderer });
+            self.renderer = Some(Renderer { sdl_renderer });
         }
         Ok(())
     }
 
-    pub fn on_update(&mut self, f: fn(&mut Ctx, f32) -> ()) {
-        self._on_updates.push(f);
-    }
+    pub fn run(&mut self) -> Sdl3Result {
+        unsafe {
+            let Some(sdl_renderer) = self.renderer.as_ref().map(|r| r.sdl_renderer) else {
+                return Err(SDL_GetError().cast::<String>().read());
+            };
+            if sdl_renderer.is_null() {
+                return Err(SDL_GetError().cast::<String>().read());
+            }
 
-    pub fn on_draw(&mut self, f: fn(&mut Ctx) -> ()) {
-        self._on_draws.push(f);
-    }
+            let Some(sdl_window) = self.window.as_ref().map(|r| r.sdl_window) else {
+                return Err(SDL_GetError().cast::<String>().read());
+            };
+            if sdl_window.is_null() {
+                return Err(SDL_GetError().cast::<String>().read());
+            }
 
-    pub fn run(&mut self) {
-        let Some(sdl_renderer) = self.ctx.renderer.as_ref().map(|r| r.sdl_renderer) else {
-            return;
-        };
-        if sdl_renderer.is_null() {
-            return;
-        }
+            self.running = true;
 
-        let Some(sdl_window) = self.ctx.window.as_ref().map(|r| r.sdl_window) else {
-            return;
-        };
-        if sdl_window.is_null() {
-            return;
-        }
-
-        self.running = true;
-
-        let mut last_time = unsafe { SDL_GetTicks() };
-        while self.running {
-            unsafe {
+            let mut last_time = SDL_GetTicks();
+            while self.running {
                 let now = SDL_GetTicks();
                 let dt = (now - last_time) as f32 / 1000.0;
                 last_time = now;
@@ -108,77 +111,31 @@ impl Engine {
                             self.running = false;
                             break;
                         }
+
+                        0x300 => println!("{}", event.key.key == Keys::A as u32),
+
                         _ => {}
                     }
                 }
 
-                for f in &self._on_updates {
-                    f(&mut self.ctx, dt);
+                for component in self.components.iter_mut() {
+                    component.update(&mut self.state, dt)?;
                 }
 
-                SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255);
-                SDL_RenderClear(sdl_renderer);
-                for f in &self._on_draws {
-                    f(&mut self.ctx);
+                if !SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255) {
+                    return Err(SDL_GetError().cast::<String>().read());
                 }
-                SDL_RenderPresent(sdl_renderer);
+                if !SDL_RenderClear(sdl_renderer) {
+                    return Err(SDL_GetError().cast::<String>().read());
+                }
+                for component in self.components.iter_mut() {
+                    component.draw(&mut self.state, &mut self.renderer.as_mut().unwrap())?;
+                }
+                if !SDL_RenderPresent(sdl_renderer) {
+                    return Err(SDL_GetError().cast::<String>().read());
+                }
             }
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Renderer {
-    sdl_renderer: *mut crate::sdl::SDL_Renderer,
-}
-
-#[derive(Debug, Clone)]
-pub struct Window {
-    sdl_window: *mut crate::sdl::SDL_Window,
-    pub title: &'static str,
-    pub width: i32,
-    pub height: i32,
-}
-
-impl Window {
-    fn kill(&self) {
-        unsafe {
-            SDL_DestroyWindow(self.sdl_window);
-        }
-    }
-}
-
-impl Drop for Window {
-    fn drop(&mut self) {
-        self.kill();
-    }
-}
-
-impl Drop for Renderer {
-    fn drop(&mut self) {
-        self.kill();
-    }
-}
-
-impl Renderer {
-    fn kill(&self) {
-        unsafe {
-            SDL_DestroyRenderer(self.sdl_renderer);
-        }
-    }
-
-    pub fn draw_rect(&self, x: f32, y: f32, w: f32, h: f32) {
-        unsafe {
-            SDL_RenderRect(
-                self.sdl_renderer,
-                std::ptr::from_ref(&SDL_FRect { x, y, w, h }),
-            );
-        }
-    }
-
-    pub fn set_draw_color(&self, r: u8, g: u8, b: u8, a: u8) {
-        unsafe {
-            SDL_SetRenderDrawColor(self.sdl_renderer, r, g, b, a);
-        }
+        Ok(())
     }
 }

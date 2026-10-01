@@ -1,14 +1,51 @@
-use sdl_rust::engine;
+use sdl_rust::{
+    component::Component,
+    engine,
+    enums::{DrawMode, WindowFlags},
+    renderer::Renderer,
+    shapes::Rect,
+};
 
-fn main() {
-    let mut engine = engine::Engine::new();
+struct GameState {}
 
-    engine.create_window("arigato", 640, 360).unwrap();
+struct Player {
+    rect: Rect,
+}
 
-    engine.on_draw(|ctx| {
-        let r = ctx.renderer.as_ref().unwrap();
-        r.set_draw_color(100, 100, 100, 255);
-        r.draw_rect(10.0, 0.0, 100.0, 100.0);
-    });
-    engine.run();
+impl Player {
+    fn new() -> Self {
+        Player {
+            rect: Rect {
+                x: 0.0,
+                y: 0.0,
+                w: 100.0,
+                h: 100.0,
+            },
+        }
+    }
+}
+
+impl Component<GameState> for Player {
+    fn draw(&mut self, _state: &GameState, gfx: &mut Renderer) -> engine::Sdl3Result {
+        gfx.set_draw_color(100, 100, 100, 255)?;
+        gfx.draw_rect(self.rect, DrawMode::Filled)?;
+
+        Ok(())
+    }
+
+    fn update(&mut self, _state: &mut GameState, dt: f32) -> engine::Sdl3Result {
+        self.rect.x += 10.0 * dt;
+        Ok(())
+    }
+}
+
+fn main() -> engine::Sdl3Result {
+    let mut engine = engine::Engine::new(GameState {});
+
+    engine.create_window("arigato", 640, 360, WindowFlags::DEFAULT)?;
+
+    engine.add(Player::new());
+    engine.run()?;
+
+    Ok(())
 }
