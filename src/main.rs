@@ -2,7 +2,7 @@ use sdl_rust::{
     component::Component,
     ctx::Ctx,
     engine,
-    enums::{DrawMode, WindowFlags},
+    enums::{DrawMode, Event, Keys, WindowFlags},
     renderer::Renderer,
     shapes::Rect,
 };
@@ -27,6 +27,17 @@ impl Player {
 }
 
 impl Component<GameState> for Player {
+    fn on(&mut self, _state: &mut GameState, _ctx: &mut Ctx, event: Event) -> engine::Sdl3Result {
+        match event {
+            Event::KeyPressed(key) => {
+                if key == Keys::SPACE {
+                    println!("Hi");
+                }
+            }
+            _ => {}
+        };
+        Ok(())
+    }
     fn draw(&mut self, _state: &GameState, gfx: &mut Renderer) -> engine::Sdl3Result {
         gfx.set_draw_color(100, 100, 100, 255)?;
         gfx.draw_rect(self.rect, DrawMode::Filled)?;
@@ -34,8 +45,13 @@ impl Component<GameState> for Player {
         Ok(())
     }
 
-    fn update(&mut self, _state: &mut GameState, ctx: &Ctx) -> engine::Sdl3Result {
-        self.rect.x += 10.0 * ctx.dt;
+    fn update(&mut self, _state: &mut GameState, ctx: &mut Ctx) -> engine::Sdl3Result {
+        if ctx.is_key_held(Keys::D) {
+            self.rect.x += 100.0 * ctx.dt;
+        }
+        if ctx.is_key_held(Keys::ESCAPE) {
+            ctx.exit();
+        }
         Ok(())
     }
 }

@@ -3,7 +3,27 @@ pub enum DrawMode {
     Outlined,
 }
 
-pub enum Keys {
+macro_rules! keys {
+    ($($name:ident = $val:literal),* $(,)?) => {
+        #[repr(u32)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub enum Keys {
+            $($name = $val),*
+        }
+
+        impl From<u32> for Keys {
+            fn from(v: u32) -> Keys {
+                match v {
+                    $($val => Keys::$name,)*
+                    _ => Keys::UNKNOWN,
+                }
+            }
+        }
+    };
+}
+
+// #[derive(PartialEq, Eq, Debug)]
+keys! {
     RETURN = 0x0000000D,
     ESCAPE = 0x0000001B,
     BACKSPACE = 0x00000008,
@@ -125,4 +145,10 @@ pub enum WindowFlags {
     MINIMIZED = 0x0000000000000040,
     MAXIMIZED = 0x0000000000000080,
     ALWAYS_ON_TOP = 0x0000000000010000,
+}
+
+#[non_exhaustive]
+pub enum Event {
+    KeyPressed(Keys),
+    MousePressed(String, u16),
 }

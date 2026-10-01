@@ -1,6 +1,6 @@
 use crate::component::Component;
 use crate::ctx::Ctx;
-use crate::enums::Keys;
+use crate::enums::{Event, Keys};
 use crate::sdl::{
     SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyWindow, SDL_Event, SDL_GetError, SDL_GetTicks,
     SDL_Init, SDL_PollEvent, SDL_Quit, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor,
@@ -12,7 +12,6 @@ use std::ffi::CString;
 pub type Sdl3Result = Result<(), String>;
 
 pub struct Engine<T> {
-    running: bool,
     window: Option<Window>,
     renderer: Option<Renderer>,
     components: Vec<Box<dyn Component<T>>>,
@@ -41,7 +40,6 @@ impl<T> Engine<T> {
         };
 
         Engine {
-            running: false,
             components: Vec::new(),
             state: state,
             window: None,
@@ -99,10 +97,8 @@ impl<T> Engine<T> {
                 return Err(SDL_GetError().cast::<String>().read());
             }
 
-            self.running = true;
-
             let mut last_time = SDL_GetTicks();
-            while self.running {
+            while self.ctx.running {
                 let now = SDL_GetTicks();
                 self.ctx.dt = (now - last_time) as f32 / 1000.0;
                 last_time = now;
@@ -111,11 +107,26 @@ impl<T> Engine<T> {
                 while SDL_PollEvent(&mut event) {
                     match event.r#type {
                         0x100 => {
-                            self.running = false;
+                            self.ctx.running = false;
                             break;
                         }
 
-                        0x300 => println!("{}", event.key.key == Keys::A as u32),
+                        0x300 => {
+                            if !self.ctx.keys_pressed.contains(&event.key.key) {
+                                for comp in self.components.iter_mut() {
+                                    comp.on(
+                                        &mut self.state,
+                                        &mut self.ctx,
+                                        Event::KeyPressed(Keys::from(event.key.key)),
+                                    )?;
+                                }
+                            }
+                            self.ctx.keys_pressed.insert(event.key.key);
+                        }
+
+                        0x301 => {
+                            self.ctx.keys_pressed.remove(&event.key.key);
+                        }
 
                         _ => {}
                     }
