@@ -1,5 +1,6 @@
 use sdl_rust::{
     component::Component,
+    ctx::Ctx,
     engine,
     enums::{DrawMode, WindowFlags},
     renderer::Renderer,
@@ -33,8 +34,8 @@ impl Component<GameState> for Player {
         Ok(())
     }
 
-    fn update(&mut self, _state: &mut GameState, dt: f32) -> engine::Sdl3Result {
-        self.rect.x += 10.0 * dt;
+    fn update(&mut self, _state: &mut GameState, ctx: &Ctx) -> engine::Sdl3Result {
+        self.rect.x += 10.0 * ctx.dt;
         Ok(())
     }
 }

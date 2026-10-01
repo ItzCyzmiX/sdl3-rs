@@ -1,4 +1,5 @@
 use crate::component::Component;
+use crate::ctx::Ctx;
 use crate::enums::Keys;
 use crate::sdl::{
     SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyWindow, SDL_Event, SDL_GetError, SDL_GetTicks,
@@ -16,6 +17,7 @@ pub struct Engine<T> {
     renderer: Option<Renderer>,
     components: Vec<Box<dyn Component<T>>>,
     pub state: T,
+    pub ctx: Ctx,
 }
 
 impl<T> Engine<T> {
@@ -44,6 +46,7 @@ impl<T> Engine<T> {
             state: state,
             window: None,
             renderer: None,
+            ctx: Ctx::new(),
         }
     }
 
@@ -101,7 +104,7 @@ impl<T> Engine<T> {
             let mut last_time = SDL_GetTicks();
             while self.running {
                 let now = SDL_GetTicks();
-                let dt = (now - last_time) as f32 / 1000.0;
+                self.ctx.dt = (now - last_time) as f32 / 1000.0;
                 last_time = now;
 
                 let mut event: SDL_Event = core::mem::zeroed();
@@ -119,7 +122,7 @@ impl<T> Engine<T> {
                 }
 
                 for component in self.components.iter_mut() {
-                    component.update(&mut self.state, dt)?;
+                    component.update(&mut self.state, &mut self.ctx)?;
                 }
 
                 if !SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255) {
