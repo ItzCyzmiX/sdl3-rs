@@ -165,6 +165,12 @@ impl BitOr<WindowFlags> for u64 {
     }
 }
 
+impl From<WindowFlags> for u64 {
+    fn from(value: WindowFlags) -> Self {
+        value as u64
+    }
+}
+
 #[non_exhaustive]
 pub enum Event {
     Quit,
