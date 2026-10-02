@@ -60,7 +60,7 @@ impl Component<GameState> for Player {
 }
 
 fn main() -> engine::Sdl3Result {
-    let mut engine = engine::Engine::new(GameState {});
+    let mut engine = engine::Engine::new(GameState {}).unwrap();
 
     engine.create_window(
         "arigato",

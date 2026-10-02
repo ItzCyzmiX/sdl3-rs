@@ -6,7 +6,7 @@ use crate::sdl::{
     SDL_Init, SDL_PollEvent, SDL_Quit, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor,
 };
 
-use crate::{enums::WindowFlags, renderer::Renderer, window::Window};
+use crate::{renderer::Renderer, window::Window};
 use std::ffi::{CStr, CString};
 
 pub type Sdl3Result = Result<(), String>;
@@ -34,18 +34,22 @@ impl<T> Drop for Engine<T> {
 }
 
 impl<T> Engine<T> {
-    pub fn new(state: T) -> Engine<T> {
+    pub fn new(state: T) -> Result<Engine<T>, String> {
         unsafe {
-            SDL_Init(0x20);
+            if !SDL_Init(0x20 | 0x400) {
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
+            }
         };
 
-        Engine {
+        Ok(Engine {
             components: Vec::new(),
             state: state,
             window: None,
             renderer: None,
             ctx: Ctx::new(),
-        }
+        })
     }
 
     pub fn create_window(
