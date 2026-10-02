@@ -62,7 +62,12 @@ impl Component<GameState> for Player {
 fn main() -> engine::Sdl3Result {
     let mut engine = engine::Engine::new(GameState {});
 
-    engine.create_window("arigato", 640, 360, WindowFlags::DEFAULT)?;
+    engine.create_window(
+        "arigato",
+        640,
+        360,
+        WindowFlags::DEFAULT | WindowFlags::FULLSCREEN,
+    )?;
 
     engine.add(Player::new());
     engine.run()?;

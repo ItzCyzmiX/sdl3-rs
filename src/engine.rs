@@ -53,7 +53,7 @@ impl<T> Engine<T> {
         title: &'static str,
         width: u32,
         height: u32,
-        flags: WindowFlags,
+        flags: u64,
     ) -> Sdl3Result {
         let title_c = CString::new(title).unwrap();
 

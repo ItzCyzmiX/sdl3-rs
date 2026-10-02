@@ -1,3 +1,5 @@
+use std::ops::BitOr;
+
 pub enum DrawMode {
     Filled,
     Outlined,
@@ -135,6 +137,9 @@ keys! {
     UNKNOWN = 0x00000000,
 }
 
+#[repr(u64)]
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowFlags {
     DEFAULT = 0,
     FULLSCREEN = 0x0000000000000001,
@@ -144,6 +149,20 @@ pub enum WindowFlags {
     MINIMIZED = 0x0000000000000040,
     MAXIMIZED = 0x0000000000000080,
     ALWAYS_ON_TOP = 0x0000000000010000,
+}
+
+impl BitOr for WindowFlags {
+    type Output = u64;
+    fn bitor(self, rhs: Self) -> Self::Output {
+        (self as u64) | (rhs as u64)
+    }
+}
+
+impl BitOr<WindowFlags> for u64 {
+    type Output = u64;
+    fn bitor(self, rhs: WindowFlags) -> Self::Output {
+        self | (rhs as u64)
+    }
 }
 
 #[non_exhaustive]
