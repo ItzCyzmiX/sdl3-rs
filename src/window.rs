@@ -1,6 +1,6 @@
 use crate::sdl::SDL_DestroyWindow;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Window {
     pub(crate) sdl_window: *mut crate::sdl::SDL_Window,
     pub title: &'static str,

@@ -7,7 +7,7 @@ use crate::sdl::{
 };
 
 use crate::{enums::WindowFlags, renderer::Renderer, window::Window};
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 
 pub type Sdl3Result = Result<(), String>;
 
@@ -61,13 +61,17 @@ impl<T> Engine<T> {
             let sdl_window =
                 SDL_CreateWindow(title_c.as_ptr(), width as i32, height as i32, flags as u64);
             if sdl_window.is_null() {
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             }
 
             let sdl_renderer = SDL_CreateRenderer(sdl_window, std::ptr::null());
             if sdl_renderer.is_null() {
                 SDL_DestroyWindow(sdl_window);
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             }
 
             self.window = Some(Window {
@@ -81,20 +85,36 @@ impl<T> Engine<T> {
         Ok(())
     }
 
+    fn signal_event_to_components(&mut self, event: Event) -> Sdl3Result {
+        for comp in self.components.iter_mut() {
+            comp.on(&mut self.state, &mut self.ctx, &event)?;
+        }
+
+        Ok(())
+    }
+
     pub fn run(&mut self) -> Sdl3Result {
         unsafe {
             let Some(sdl_renderer) = self.renderer.as_ref().map(|r| r.sdl_renderer) else {
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             };
             if sdl_renderer.is_null() {
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             }
 
             let Some(sdl_window) = self.window.as_ref().map(|r| r.sdl_window) else {
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             };
             if sdl_window.is_null() {
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             }
 
             let mut last_time = SDL_GetTicks();
@@ -107,19 +127,16 @@ impl<T> Engine<T> {
                 while SDL_PollEvent(&mut event) {
                     match event.r#type {
                         0x100 => {
+                            self.signal_event_to_components(Event::Quit)?;
                             self.ctx.running = false;
                             break;
                         }
 
                         0x300 => {
                             if !self.ctx.keys_pressed.contains(&event.key.key) {
-                                for comp in self.components.iter_mut() {
-                                    comp.on(
-                                        &mut self.state,
-                                        &mut self.ctx,
-                                        Event::KeyPressed(Keys::from(event.key.key)),
-                                    )?;
-                                }
+                                self.signal_event_to_components(Event::KeyPressed(Keys::from(
+                                    event.key.key,
+                                )))?;
                             }
                             self.ctx.keys_pressed.insert(event.key.key);
                         }
@@ -127,6 +144,12 @@ impl<T> Engine<T> {
                         0x301 => {
                             self.ctx.keys_pressed.remove(&event.key.key);
                         }
+                        0x400 => self.signal_event_to_components(Event::MouseMoved(
+                            event.motion.x,
+                            event.motion.y,
+                            event.motion.xrel,
+                            event.motion.yrel,
+                        ))?,
 
                         _ => {}
                     }
@@ -137,16 +160,22 @@ impl<T> Engine<T> {
                 }
 
                 if !SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255) {
-                    return Err(SDL_GetError().cast::<String>().read());
+                    return Err(CStr::from_ptr(SDL_GetError())
+                        .to_string_lossy()
+                        .into_owned());
                 }
                 if !SDL_RenderClear(sdl_renderer) {
-                    return Err(SDL_GetError().cast::<String>().read());
+                    return Err(CStr::from_ptr(SDL_GetError())
+                        .to_string_lossy()
+                        .into_owned());
                 }
                 for component in self.components.iter_mut() {
                     component.draw(&mut self.state, &mut self.renderer.as_mut().unwrap())?;
                 }
                 if !SDL_RenderPresent(sdl_renderer) {
-                    return Err(SDL_GetError().cast::<String>().read());
+                    return Err(CStr::from_ptr(SDL_GetError())
+                        .to_string_lossy()
+                        .into_owned());
                 }
             }
         }

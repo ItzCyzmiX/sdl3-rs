@@ -22,7 +22,6 @@ macro_rules! keys {
     };
 }
 
-// #[derive(PartialEq, Eq, Debug)]
 keys! {
     RETURN = 0x0000000D,
     ESCAPE = 0x0000001B,
@@ -149,6 +148,8 @@ pub enum WindowFlags {
 
 #[non_exhaustive]
 pub enum Event {
+    Quit,
     KeyPressed(Keys),
     MousePressed(String, u16),
+    MouseMoved(f32, f32, f32, f32),
 }

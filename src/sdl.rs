@@ -42,10 +42,27 @@ pub struct SDL_KeyboardEvent {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[allow(non_snake_case)]
+pub struct SDL_MouseMotionEvent {
+    pub r#type: SDL_EventType,
+    pub reserved: u32,
+    pub timestamp: u64,
+    pub windowID: u32,
+    pub which: u32,
+    pub state: u32,
+    pub x: f32,
+    pub y: f32,
+    pub xrel: f32,
+    pub yrel: f32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub union SDL_Event {
     pub r#type: u32,
     pub quit: SDL_QuitEvent,
     pub key: SDL_KeyboardEvent,
+    pub motion: SDL_MouseMotionEvent,
     pub padding: [u8; 128],
 }
 

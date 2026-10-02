@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 use crate::engine::Sdl3Result;
 use crate::enums::DrawMode;
 use crate::sdl::{
@@ -5,7 +7,7 @@ use crate::sdl::{
     SDL_SetRenderDrawColor,
 };
 use crate::shapes::Rect;
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Renderer {
     pub(crate) sdl_renderer: *mut crate::sdl::SDL_Renderer,
 }
@@ -34,12 +36,16 @@ impl Renderer {
             match fill {
                 DrawMode::Filled => {
                     if !SDL_RenderFillRect(self.sdl_renderer, rect_ptr) {
-                        return Err(SDL_GetError().cast::<String>().read());
+                        return Err(CStr::from_ptr(SDL_GetError())
+                            .to_string_lossy()
+                            .into_owned());
                     }
                 }
                 DrawMode::Outlined => {
                     if !SDL_RenderRect(self.sdl_renderer, rect_ptr) {
-                        return Err(SDL_GetError().cast::<String>().read());
+                        return Err(CStr::from_ptr(SDL_GetError())
+                            .to_string_lossy()
+                            .into_owned());
                     }
                 }
             }
@@ -51,7 +57,9 @@ impl Renderer {
     pub fn set_draw_color(&self, r: u8, g: u8, b: u8, a: u8) -> Sdl3Result {
         unsafe {
             if !SDL_SetRenderDrawColor(self.sdl_renderer, r, g, b, a) {
-                return Err(SDL_GetError().cast::<String>().read());
+                return Err(CStr::from_ptr(SDL_GetError())
+                    .to_string_lossy()
+                    .into_owned());
             }
             Ok(())
         }

@@ -1,7 +1,7 @@
 use crate::{ctx::Ctx, engine::Sdl3Result, enums::Event, renderer::Renderer};
 
 pub trait Component<S> {
-    fn on(&mut self, _state: &mut S, _ctx: &mut Ctx, _event: Event) -> Sdl3Result {
+    fn on(&mut self, _state: &mut S, _ctx: &mut Ctx, _event: &Event) -> Sdl3Result {
         Ok(())
     }
 

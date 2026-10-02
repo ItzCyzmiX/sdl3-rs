@@ -27,12 +27,15 @@ impl Player {
 }
 
 impl Component<GameState> for Player {
-    fn on(&mut self, _state: &mut GameState, _ctx: &mut Ctx, event: Event) -> engine::Sdl3Result {
+    fn on(&mut self, _state: &mut GameState, _ctx: &mut Ctx, event: &Event) -> engine::Sdl3Result {
         match event {
             Event::KeyPressed(key) => {
-                if key == Keys::SPACE {
+                if *key == Keys::SPACE {
                     println!("Hi");
                 }
+            }
+            Event::MouseMoved(_, _, relx, rely) => {
+                println!("{}, {}", relx, rely);
             }
             _ => {}
         };
