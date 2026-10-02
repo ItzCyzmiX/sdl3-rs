@@ -9,16 +9,8 @@ pub struct SDL_FRect {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-#[allow(non_camel_case_types)]
-pub enum SDL_EventType {
-    SDL_EVENT_FIRST = 0,
-    SDL_EVENT_QUIT = 0x100,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
 pub struct SDL_QuitEvent {
-    pub r#type: SDL_EventType,
+    pub r#type: u32,
     pub reserved: u32,
     pub timestamp: u64,
 }
@@ -27,7 +19,7 @@ pub struct SDL_QuitEvent {
 #[derive(Clone, Copy)]
 #[allow(non_snake_case)]
 pub struct SDL_KeyboardEvent {
-    pub r#type: SDL_EventType,
+    pub r#type: u32,
     pub reserved: u32,
     pub timestamp: u64,
     pub windowID: u32,
@@ -44,7 +36,7 @@ pub struct SDL_KeyboardEvent {
 #[derive(Clone, Copy)]
 #[allow(non_snake_case)]
 pub struct SDL_MouseMotionEvent {
-    pub r#type: SDL_EventType,
+    pub r#type: u32,
     pub reserved: u32,
     pub timestamp: u64,
     pub windowID: u32,
@@ -55,6 +47,29 @@ pub struct SDL_MouseMotionEvent {
     pub xrel: f32,
     pub yrel: f32,
 }
+#[repr(C)]
+#[derive(Clone, Copy)]
+#[allow(non_snake_case)]
+pub struct SDL_MouseButtonEvent {
+    pub r#type: u32,
+    pub reserved: u32,
+    pub timestamp: u64,
+    pub windowID: u32,
+    pub which: u32,
+    pub button: u8,
+    pub down: bool,
+    pub clicks: u8,
+    pub padding: u8,
+    pub x: f32,
+    pub y: f32,
+}
+
+pub const SDL_EVENT_QUIT: u32 = 0x100;
+pub const SDL_EVENT_KEY_DOWN: u32 = 0x300;
+pub const SDL_EVENT_KEY_UP: u32 = 0x301;
+pub const SDL_EVENT_MOUSE_MOTION: u32 = 0x400;
+pub const SDL_EVENT_MOUSE_BUTTON_DOWN: u32 = 0x401;
+pub const SDL_EVENT_MOUSE_BUTTON_UP: u32 = 0x402;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -63,6 +78,7 @@ pub union SDL_Event {
     pub quit: SDL_QuitEvent,
     pub key: SDL_KeyboardEvent,
     pub motion: SDL_MouseMotionEvent,
+    pub button: SDL_MouseButtonEvent,
     pub padding: [u8; 128],
 }
 

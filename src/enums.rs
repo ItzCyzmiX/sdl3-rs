@@ -171,10 +171,31 @@ impl From<WindowFlags> for u64 {
     }
 }
 
+#[derive(Debug)]
+pub enum MouseButton {
+    Left,
+    Middle,
+    Right,
+    Other,
+}
+
+impl Into<MouseButton> for u8 {
+    fn into(self) -> MouseButton {
+        match self {
+            1 => MouseButton::Left,
+            2 => MouseButton::Middle,
+            3 => MouseButton::Right,
+            _ => MouseButton::Other,
+        }
+    }
+}
+
 #[non_exhaustive]
 pub enum Event {
     Quit,
     KeyPressed(Keys),
-    MousePressed(String, u16),
+    KeyReleased(Keys),
     MouseMoved(f32, f32, f32, f32),
+    MousePressed(MouseButton, u8, f32, f32),
+    MouseReleased(MouseButton, f32, f32),
 }
