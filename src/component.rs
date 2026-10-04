@@ -1,6 +1,10 @@
 use crate::{ctx::Ctx, engine::Sdl3Result, enums::Event, renderer::Renderer};
 
 pub trait Component<S> {
+    fn create(state: &mut S, ctx: &mut Ctx, _gfx: &mut Renderer) -> Self
+    where
+        Self: Sized;
+
     fn on(&mut self, _state: &mut S, _ctx: &mut Ctx, _event: &Event) -> Sdl3Result {
         Ok(())
     }

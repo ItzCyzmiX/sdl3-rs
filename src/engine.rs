@@ -1,6 +1,6 @@
 use crate::component::Component;
 use crate::ctx::Ctx;
-use crate::enums::{Event, Keys, MouseButton};
+use crate::enums::{Event, Keys};
 use crate::sdl::{
     SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyWindow, SDL_EVENT_KEY_DOWN, SDL_EVENT_KEY_UP,
     SDL_EVENT_MOUSE_BUTTON_DOWN, SDL_EVENT_MOUSE_BUTTON_UP, SDL_EVENT_MOUSE_MOTION, SDL_EVENT_QUIT,
@@ -23,7 +23,12 @@ pub struct Engine<T> {
 }
 
 impl<T> Engine<T> {
-    pub fn add(&mut self, component: impl Component<T> + 'static) {
+    pub fn add<C: Component<T> + 'static>(&mut self) {
+        let gfx = self
+            .renderer
+            .as_mut()
+            .expect("Call create_window before adding components");
+        let component = C::create(&mut self.state, &mut self.ctx, gfx);
         self.components.push(Box::new(component));
     }
 }

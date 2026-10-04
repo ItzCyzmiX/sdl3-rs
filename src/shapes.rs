@@ -5,3 +5,9 @@ pub struct Rect {
     pub w: f32,
     pub h: f32,
 }
+
+impl Rect {
+    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Rect { x, y, w, h }
+    }
+}
