@@ -2,7 +2,7 @@ use hydra::{
     component::Component,
     ctx::Ctx,
     engine,
-    enums::{DrawMode, Event, Keys, WindowFlags},
+    enums::{DrawMode, Event, Keys, MouseButton, WindowFlags},
     renderer::Renderer,
     shapes::Rect,
     sprite::Sprite,
@@ -19,23 +19,18 @@ impl Component<GameState> for Player {
     fn create(_state: &mut GameState, _ctx: &mut Ctx, gfx: &mut Renderer) -> Self {
         Player {
             rect: Rect::new(0.0, 0.0, 100.0, 100.0),
-            sprite: Sprite::new(
-                "ultron.jpg",
-                Rect::new(0.0, 0.0, 100.0, 100.0),
-                Some(Rect::new(0.0, 0.0, 100.0, 100.0)),
-                gfx,
-            )
-            .unwrap(),
+            sprite: Sprite::new("ultron.jpg", Rect::new(0.0, 0.0, 100.0, 100.0), None, gfx)
+                .unwrap(),
         }
     }
 
-    fn on(&mut self, _state: &mut GameState, _ctx: &mut Ctx, event: &Event) -> engine::Sdl3Result {
+    fn on(&mut self, _state: &mut GameState, ctx: &mut Ctx, event: &Event) -> engine::Sdl3Result {
         match event {
-            Event::KeyReleased(key) => {
-                if *key == Keys::SPACE {
-                    println!("Hi");
-                }
-            }
+            Event::KeyReleased(key) => match *key {
+                Keys::SPACE => println!("Hi"),
+                Keys::ESCAPE => ctx.exit(),
+                _ => {}
+            },
 
             Event::MouseReleased(btn, x, y) => {
                 println!("released {:?}  in ({}, {})", btn, x, y);
@@ -58,9 +53,17 @@ impl Component<GameState> for Player {
             self.rect.x += 100.0 * ctx.dt;
             self.sprite.dest_rect.x += 10.0 * ctx.dt;
         }
-        if ctx.is_key_held(Keys::ESCAPE) {
-            ctx.exit();
+
+        if ctx.is_mouse_held(MouseButton::Left) {
+            self.sprite.dest_rect.x = ctx.get_mouse_position().0;
+            self.sprite.dest_rect.y = ctx.get_mouse_position().1;
         }
+
+        Ok(())
+    }
+
+    fn kill(&mut self, _state: &mut GameState, _ctx: &mut Ctx) -> engine::Sdl3Result {
+        println!("Bye!");
         Ok(())
     }
 }

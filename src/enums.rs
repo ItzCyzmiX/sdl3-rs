@@ -9,6 +9,7 @@ macro_rules! keys {
     ($($name:ident = $val:literal),* $(,)?) => {
         #[repr(u32)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[non_exhaustive]
         pub enum Keys {
             $($name = $val),*
         }
@@ -171,7 +172,8 @@ impl From<WindowFlags> for u64 {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum MouseButton {
     Left,
     Middle,
@@ -190,6 +192,18 @@ impl Into<MouseButton> for u8 {
     }
 }
 
+impl Into<u8> for MouseButton {
+    fn into(self) -> u8 {
+        match self {
+            MouseButton::Left => 1,
+            MouseButton::Middle => 2,
+            MouseButton::Right => 3,
+            _ => 4,
+        }
+    }
+}
+
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum Event {
     Quit,

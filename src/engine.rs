@@ -35,6 +35,12 @@ impl<T> Engine<T> {
 
 impl<T> Drop for Engine<T> {
     fn drop(&mut self) {
+        for component in self.components.iter_mut() {
+            component
+                .kill(&mut self.state, &mut self.ctx)
+                .expect("Couldnt kill component");
+        }
+
         self.renderer.take();
         self.window.take();
         unsafe {
@@ -152,6 +158,7 @@ impl<T> Engine<T> {
                         }
 
                         SDL_EVENT_MOUSE_MOTION => {
+                            self.ctx.mouse_pos = (event.motion.x, event.motion.y);
                             self.signal_event_to_components(Event::MouseMoved(
                                 event.motion.x,
                                 event.motion.y,
@@ -161,6 +168,8 @@ impl<T> Engine<T> {
                         }
 
                         SDL_EVENT_MOUSE_BUTTON_DOWN => {
+                            self.ctx.button_pressed.insert(event.button.button);
+
                             self.signal_event_to_components(Event::MousePressed(
                                 event.button.button.into(),
                                 event.button.clicks,
@@ -170,6 +179,8 @@ impl<T> Engine<T> {
                         }
 
                         SDL_EVENT_MOUSE_BUTTON_UP => {
+                            self.ctx.button_pressed.remove(&event.button.button);
+
                             self.signal_event_to_components(Event::MouseReleased(
                                 event.button.button.into(),
                                 event.button.x,
