@@ -1,4 +1,4 @@
-use sdl_rust::{
+use hydra::{
     component::Component,
     ctx::Ctx,
     engine,

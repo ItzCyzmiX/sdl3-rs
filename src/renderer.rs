@@ -3,7 +3,7 @@ use crate::enums::DrawMode;
 use crate::sdl::{
     SDL_DestroyRenderer, SDL_FRect, SDL_RenderFillRect, SDL_RenderRect, SDL_SetRenderDrawColor,
 };
-use crate::sdl_image::{SDL_CreateTextureFromSurface, SDL_RenderTexture};
+use crate::sdl_image::SDL_RenderTexture;
 use crate::shapes::Rect;
 use crate::sprite::Sprite;
 use crate::utils::sdl_error;

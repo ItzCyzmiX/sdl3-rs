@@ -1,7 +1,7 @@
 use crate::{
     renderer::Renderer,
     sdl_image::{
-        IMG_Load, SDL_CreateTextureFromSurface, SDL_DestroySurface, SDL_Surface, SDL_Texture,
+        IMG_Load, SDL_CreateTextureFromSurface, SDL_DestroySurface, SDL_Texture,
     },
     shapes::Rect,
     utils::sdl_error,
