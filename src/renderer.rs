@@ -5,11 +5,12 @@ use crate::sdl::{
 };
 use crate::sdl_image::SDL_RenderTexture;
 use crate::shapes::Rect;
-use crate::sprite::Sprite;
+use crate::sprite::{Sprite, SpriteManager};
 use crate::utils::sdl_error;
 #[derive(Debug)]
 pub struct Renderer {
     pub(crate) sdl_renderer: *mut crate::sdl::SDL_Renderer,
+    pub(crate) sprite_manager: SpriteManager,
 }
 
 impl Drop for Renderer {
@@ -52,8 +53,8 @@ impl Renderer {
 
     pub fn draw_sprite(&self, sprite: &mut Sprite) -> Sdl3Result {
         unsafe {
-            if sprite.sdl_texture.is_null() {
-                return Err(sdl_error());
+            if !sprite.raw_texture().is_some() {
+                return Ok(());
             }
 
             let dstrect = SDL_FRect {
@@ -63,9 +64,9 @@ impl Renderer {
                 h: sprite.dest_rect.h,
             };
 
-            SDL_RenderTexture(
+            if !SDL_RenderTexture(
                 self.sdl_renderer,
-                sprite.sdl_texture,
+                sprite.raw_texture().unwrap(),
                 if let Some(source_rect) = sprite.source_rect {
                     &SDL_FRect {
                         x: source_rect.x,
@@ -77,7 +78,9 @@ impl Renderer {
                     core::mem::zeroed()
                 },
                 &dstrect,
-            );
+            ) {
+                return Err(sdl_error());
+            }
 
             Ok(())
         }

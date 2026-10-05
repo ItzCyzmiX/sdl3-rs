@@ -8,8 +8,10 @@ use crate::sdl::{
     SDL_RenderPresent, SDL_SetRenderDrawColor,
 };
 
+use crate::sprite::SpriteManager;
 use crate::utils::sdl_error;
 use crate::{renderer::Renderer, window::Window};
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 
 pub type Sdl3Result = Result<(), String>;
@@ -35,8 +37,10 @@ impl<T> Engine<T> {
 
 impl<T> Drop for Engine<T> {
     fn drop(&mut self) {
-        for component in self.components.iter_mut() {
-            component
+        while self.components.len() > 0 {
+            self.components
+                .pop()
+                .unwrap()
                 .kill(&mut self.state, &mut self.ctx)
                 .expect("Couldnt kill component");
         }
@@ -96,7 +100,12 @@ impl<T> Engine<T> {
                 width: width as i32,
                 height: height as i32,
             });
-            self.renderer = Some(Renderer { sdl_renderer });
+            self.renderer = Some(Renderer {
+                sdl_renderer,
+                sprite_manager: SpriteManager {
+                    textures: HashMap::new(),
+                },
+            });
         }
         Ok(())
     }

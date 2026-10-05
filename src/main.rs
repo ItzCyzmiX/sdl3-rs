@@ -13,6 +13,7 @@ struct GameState {}
 struct Player {
     rect: Rect,
     sprite: Sprite,
+    sprite2: Sprite,
 }
 
 impl Component<GameState> for Player {
@@ -21,13 +22,18 @@ impl Component<GameState> for Player {
             rect: Rect::new(0.0, 0.0, 100.0, 100.0),
             sprite: Sprite::new("ultron.jpg", Rect::new(0.0, 0.0, 100.0, 100.0), None, gfx)
                 .unwrap(),
+            sprite2: Sprite::new("ultron.jpg", Rect::new(100.0, 0.0, 100.0, 100.0), None, gfx)
+                .unwrap(),
         }
     }
 
     fn on(&mut self, _state: &mut GameState, ctx: &mut Ctx, event: &Event) -> engine::Sdl3Result {
         match event {
             Event::KeyReleased(key) => match *key {
-                Keys::SPACE => println!("Hi"),
+                Keys::SPACE => {
+                    self.sprite.kill();
+                    self.sprite2.kill();
+                }
                 Keys::ESCAPE => ctx.exit(),
                 _ => {}
             },
@@ -43,7 +49,9 @@ impl Component<GameState> for Player {
     fn draw(&mut self, _state: &GameState, gfx: &mut Renderer) -> engine::Sdl3Result {
         gfx.set_draw_color(100, 100, 100, 255)?;
         gfx.draw_rect(self.rect, DrawMode::Filled)?;
+
         gfx.draw_sprite(&mut self.sprite)?;
+        gfx.draw_sprite(&mut self.sprite2)?;
 
         Ok(())
     }
@@ -63,7 +71,6 @@ impl Component<GameState> for Player {
     }
 
     fn kill(&mut self, _state: &mut GameState, _ctx: &mut Ctx) -> engine::Sdl3Result {
-        println!("Bye!");
         Ok(())
     }
 }

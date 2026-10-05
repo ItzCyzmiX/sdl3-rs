@@ -39,4 +39,6 @@ unsafe extern "C" {
     ) -> bool;
 
     pub fn SDL_DestroySurface(surface: *mut SDL_Surface);
+
+    pub fn SDL_DestroyTexture(texture: *mut SDL_Texture);
 }
