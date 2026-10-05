@@ -4,7 +4,7 @@ use crate::enums::{Event, Keys};
 use crate::sdl::{
     SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyWindow, SDL_EVENT_KEY_DOWN, SDL_EVENT_KEY_UP,
     SDL_EVENT_MOUSE_BUTTON_DOWN, SDL_EVENT_MOUSE_BUTTON_UP, SDL_EVENT_MOUSE_MOTION, SDL_EVENT_QUIT,
-    SDL_Event, SDL_GetError, SDL_GetTicks, SDL_Init, SDL_PollEvent, SDL_Quit, SDL_RenderClear,
+    SDL_Event, SDL_GetError, SDL_GetTicksNS, SDL_Init, SDL_PollEvent, SDL_Quit, SDL_RenderClear,
     SDL_RenderPresent, SDL_SetRenderDrawColor,
 };
 
@@ -134,11 +134,11 @@ impl<T> Engine<T> {
                 return Err("Window not created!".to_string());
             }
 
-            let mut last_time = SDL_GetTicks();
+            let mut last_time = SDL_GetTicksNS();
 
             while self.ctx.running {
-                let now = SDL_GetTicks();
-                self.ctx.dt = (now - last_time) as f32 / 1000.0;
+                let now = SDL_GetTicksNS();
+                self.ctx.dt = (((now - last_time) as f64 / 1_000_000_000.0) as f32).min(0.1);
                 last_time = now;
 
                 let mut event: SDL_Event = core::mem::zeroed();

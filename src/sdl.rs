@@ -119,7 +119,7 @@ unsafe extern "C" {
 
     pub fn SDL_PollEvent(event: *mut SDL_Event) -> bool;
 
-    pub fn SDL_GetTicks() -> u64;
+    pub fn SDL_GetTicksNS() -> u64;
 
     pub fn SDL_GetError() -> *const std::ffi::c_char;
 
