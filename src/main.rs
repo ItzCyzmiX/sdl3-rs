@@ -1,5 +1,11 @@
 use hydra::{
-    component::Component, ctx::Ctx, engine, enums::{DrawMode, Event, Keys, MouseButton, WindowFlags}, renderer::Renderer, shapes::{Point, Rect}, sprite::Sprite,
+    component::Component,
+    ctx::Ctx,
+    engine,
+    enums::{Color, DrawMode, Event, Keys, MouseButton, WindowFlags},
+    renderer::Renderer,
+    shapes::{Point, Rect},
+    sprite::Sprite,
 };
 
 struct GameState {}
@@ -8,6 +14,8 @@ struct Player {
     rect: Rect,
     sprite: Sprite,
     sprite2: Sprite,
+    point1: Point,
+    point2: Point,
 }
 
 impl Component<GameState> for Player {
@@ -18,7 +26,9 @@ impl Component<GameState> for Player {
                 .unwrap(),
             sprite2: Sprite::new("ultron.jpg", Rect::new(100.0, 0.0, 100.0, 100.0), None, gfx)
                 .unwrap(),
-            
+
+            point1: Point { x: 0.0, y: 0.0 },
+            point2: Point { x: 100.0, y: 100.0 },
         }
     }
 
@@ -33,8 +43,9 @@ impl Component<GameState> for Player {
                 _ => {}
             },
 
-            Event::MouseReleased(btn, x, y) => {
-                println!("released {:?}  in ({}, {})", btn, x, y);
+            Event::MouseMoved(x, y, _, _) => {
+                self.point2.x = *x;
+                self.point2.y = *y;
             }
             _ => {}
         };
@@ -42,13 +53,19 @@ impl Component<GameState> for Player {
     }
 
     fn draw(&mut self, _state: &GameState, gfx: &mut Renderer) -> engine::Sdl3Result {
-        gfx.set_draw_color(100, 100, 100, 255)?;
+        gfx.set_draw_color(Color {
+            r: 100,
+            g: 100,
+            b: 100,
+            a: 255,
+        })?;
         gfx.draw_rect(self.rect, DrawMode::Filled)?;
 
         gfx.draw_sprite(&mut self.sprite)?;
         gfx.draw_sprite(&mut self.sprite2)?;
 
-        gfx.draw_line(&Point { x: 0., y: 0. }, &Point { x: 100., y: 100. })?;
+        gfx.set_draw_color(Color::white())?;
+        gfx.draw_line(self.point1, self.point2)?;
 
         Ok(())
     }
@@ -67,7 +84,7 @@ impl Component<GameState> for Player {
         Ok(())
     }
 
-    fn kill(&mut self, _state: &mut GameState, _ctx: &mut Ctx) -> engine::Sdl3Result {        
+    fn kill(&mut self, _state: &mut GameState, _ctx: &mut Ctx) -> engine::Sdl3Result {
         Ok(())
     }
 }

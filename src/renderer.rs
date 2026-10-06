@@ -1,7 +1,8 @@
 use crate::engine::Sdl3Result;
-use crate::enums::DrawMode;
+use crate::enums::{Color, DrawMode};
 use crate::sdl::{
-    SDL_DestroyRenderer, SDL_FRect, SDL_RenderFillRect, SDL_RenderLine, SDL_RenderPoint, SDL_RenderRect, SDL_SetRenderDrawColor,
+    SDL_DestroyRenderer, SDL_FRect, SDL_RenderFillRect, SDL_RenderLine, SDL_RenderPoint,
+    SDL_RenderRect, SDL_SetRenderDrawColor,
 };
 use crate::sdl_image::SDL_RenderTexture;
 use crate::shapes::{Point, Rect};
@@ -51,7 +52,7 @@ impl Renderer {
         }
     }
 
-    pub fn draw_point(&self, point: &Point) -> Sdl3Result {
+    pub fn draw_point(&self, point: Point) -> Sdl3Result {
         unsafe {
             if !SDL_RenderPoint(self.sdl_renderer, point.x, point.y) {
                 return Err(sdl_error());
@@ -60,10 +61,10 @@ impl Renderer {
         }
     }
 
-    pub fn draw_line(&self, point1: &Point, point2: &Point) -> Sdl3Result {
+    pub fn draw_line(&self, point1: Point, point2: Point) -> Sdl3Result {
         unsafe {
             if !SDL_RenderLine(self.sdl_renderer, point1.x, point1.y, point2.x, point2.y) {
-                return Err(sdl_error())
+                return Err(sdl_error());
             }
             Ok(())
         }
@@ -104,9 +105,9 @@ impl Renderer {
         }
     }
 
-    pub fn set_draw_color(&self, r: u8, g: u8, b: u8, a: u8) -> Sdl3Result {
+    pub fn set_draw_color(&self, c: Color) -> Sdl3Result {
         unsafe {
-            if !SDL_SetRenderDrawColor(self.sdl_renderer, r, g, b, a) {
+            if !SDL_SetRenderDrawColor(self.sdl_renderer, c.r, c.g, c.b, c.a) {
                 return Err(sdl_error());
             }
             Ok(())

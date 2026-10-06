@@ -213,3 +213,67 @@ pub enum Event {
     MousePressed(MouseButton, u8, f32, f32),
     MouseReleased(MouseButton, f32, f32),
 }
+
+#[derive(Clone, Copy, Debug)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
+}
+
+impl Color {
+    pub fn red() -> Self {
+        Color {
+            r: 255,
+            g: 0,
+            b: 0,
+            a: 255,
+        }
+    }
+
+    pub fn black() -> Self {
+        Color {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 255,
+        }
+    }
+
+    pub fn white() -> Self {
+        Color {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 255,
+        }
+    }
+
+    pub fn transparent() -> Self {
+        Color {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 0,
+        }
+    }
+
+    pub fn green() -> Self {
+        Color {
+            r: 0,
+            g: 255,
+            b: 0,
+            a: 255,
+        }
+    }
+
+    pub fn blue() -> Self {
+        Color {
+            r: 0,
+            g: 0,
+            b: 255,
+            a: 255,
+        }
+    }
+}
