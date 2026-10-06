@@ -1,10 +1,10 @@
 use crate::engine::Sdl3Result;
 use crate::enums::DrawMode;
 use crate::sdl::{
-    SDL_DestroyRenderer, SDL_FRect, SDL_RenderFillRect, SDL_RenderRect, SDL_SetRenderDrawColor,
+    SDL_DestroyRenderer, SDL_FRect, SDL_RenderFillRect, SDL_RenderLine, SDL_RenderPoint, SDL_RenderRect, SDL_SetRenderDrawColor,
 };
 use crate::sdl_image::SDL_RenderTexture;
-use crate::shapes::Rect;
+use crate::shapes::{Point, Rect};
 use crate::sprite::{Sprite, SpriteManager};
 use crate::utils::sdl_error;
 #[derive(Debug)]
@@ -47,6 +47,24 @@ impl Renderer {
                 }
             }
 
+            Ok(())
+        }
+    }
+
+    pub fn draw_point(&self, point: &Point) -> Sdl3Result {
+        unsafe {
+            if !SDL_RenderPoint(self.sdl_renderer, point.x, point.y) {
+                return Err(sdl_error());
+            }
+            Ok(())
+        }
+    }
+
+    pub fn draw_line(&self, point1: &Point, point2: &Point) -> Sdl3Result {
+        unsafe {
+            if !SDL_RenderLine(self.sdl_renderer, point1.x, point1.y, point2.x, point2.y) {
+                return Err(sdl_error())
+            }
             Ok(())
         }
     }

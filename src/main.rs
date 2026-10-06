@@ -1,11 +1,5 @@
 use hydra::{
-    component::Component,
-    ctx::Ctx,
-    engine,
-    enums::{DrawMode, Event, Keys, MouseButton, WindowFlags},
-    renderer::Renderer,
-    shapes::Rect,
-    sprite::Sprite,
+    component::Component, ctx::Ctx, engine, enums::{DrawMode, Event, Keys, MouseButton, WindowFlags}, renderer::Renderer, shapes::{Point, Rect}, sprite::Sprite,
 };
 
 struct GameState {}
@@ -24,6 +18,7 @@ impl Component<GameState> for Player {
                 .unwrap(),
             sprite2: Sprite::new("ultron.jpg", Rect::new(100.0, 0.0, 100.0, 100.0), None, gfx)
                 .unwrap(),
+            
         }
     }
 
@@ -53,6 +48,8 @@ impl Component<GameState> for Player {
         gfx.draw_sprite(&mut self.sprite)?;
         gfx.draw_sprite(&mut self.sprite2)?;
 
+        gfx.draw_line(&Point { x: 0., y: 0. }, &Point { x: 100., y: 100. })?;
+
         Ok(())
     }
 
@@ -70,7 +67,7 @@ impl Component<GameState> for Player {
         Ok(())
     }
 
-    fn kill(&mut self, _state: &mut GameState, _ctx: &mut Ctx) -> engine::Sdl3Result {
+    fn kill(&mut self, _state: &mut GameState, _ctx: &mut Ctx) -> engine::Sdl3Result {        
         Ok(())
     }
 }

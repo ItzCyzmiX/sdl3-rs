@@ -117,6 +117,9 @@ unsafe extern "C" {
     pub fn SDL_RenderRect(renderer: *mut SDL_Renderer, rect: *const SDL_FRect) -> bool;
     pub fn SDL_RenderFillRect(renderer: *mut SDL_Renderer, rect: *const SDL_FRect) -> bool;
 
+    pub fn SDL_RenderPoint(renderer: *mut SDL_Renderer, x: f32, y: f32) -> bool;
+    pub fn SDL_RenderLine(renderer: *mut SDL_Renderer, x1: f32, y1: f32, x2: f32, y2: f32) -> bool;
+
     pub fn SDL_PollEvent(event: *mut SDL_Event) -> bool;
 
     pub fn SDL_GetTicksNS() -> u64;

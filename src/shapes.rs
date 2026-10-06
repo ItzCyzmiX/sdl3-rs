@@ -11,3 +11,8 @@ impl Rect {
         Rect { x, y, w, h }
     }
 }
+
+pub struct Point {
+    pub x: f32,
+    pub y: f32,
+}
